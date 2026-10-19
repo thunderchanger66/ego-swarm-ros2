@@ -23,9 +23,9 @@ def generate_launch_description():
     target_y = LaunchConfiguration('target_y', default=20.0)
     target_z = LaunchConfiguration('target_z', default=1.0)
     drone_id = LaunchConfiguration('drone_id', default=0)
-    odom_topic = LaunchConfiguration('odom_topic', default='/mavros/local_position/odom')
+    odom_topic = LaunchConfiguration('odom_topic', default='/fastlio2/lio_odom')
     depth_topic = LaunchConfiguration('depth_topic', default='/depth_camera_bestef')
-    cloud_topic = LaunchConfiguration('cloud_topic', default='/lidar_points')
+    cloud_topic = LaunchConfiguration('cloud_topic', default='/fastlio2/world_cloud')
     # goal_pose = LaunchConfiguration('goal_pose', default='/goal_pose')
 
     # DeclareLaunchArgument definitions
