@@ -128,6 +128,7 @@ namespace ego_planner
         double getSwarmClearance() { return swarm_clearance_; }
 
     private:
+        rclcpp::Clock::SharedPtr clock_;
         GridMap::Ptr grid_map_;
         fast_planner::ObjPredictor::Ptr moving_objs_;
         SwarmTrajData* swarm_trajs_{NULL}; // Can not use shared_ptr and no need to free

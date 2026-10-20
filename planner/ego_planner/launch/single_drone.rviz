@@ -306,7 +306,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 255; 255; 255
-    Fixed Frame: map
+    Fixed Frame: lidar
     Frame Rate: 30
   Name: root
   Tools:

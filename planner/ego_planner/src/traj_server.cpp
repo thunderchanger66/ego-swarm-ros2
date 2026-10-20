@@ -16,6 +16,8 @@ bool receive_traj_ = false;
 vector<UniformBspline> traj_;
 double traj_duration_;
 rclcpp::Time start_time_;
+rclcpp::Clock::SharedPtr trajectory_clock_;
+std::string planning_frame_;
 int traj_id_;
 
 // yaw control
@@ -168,14 +170,15 @@ void cmdCallback()
         return;
 
     // 统一时间源
-    rclcpp::Clock clock(RCL_ROS_TIME);
-    rclcpp::Time time_now = clock.now();
+    rclcpp::Time time_now = trajectory_clock_->now();
     double t_cur = (time_now - start_time_).seconds();
 
     Eigen::Vector3d pos(Eigen::Vector3d::Zero()), vel(Eigen::Vector3d::Zero()), acc(Eigen::Vector3d::Zero()), pos_f;
     std::pair<double, double> yaw_yawdot(0, 0);
 
-    static rclcpp::Time time_last = clock.now();
+    static rclcpp::Time time_last = time_now;
+    if (time_now <= time_last)
+        return;
     if (t_cur < traj_duration_ && t_cur >= 0.0)
     {
         pos = traj_[0].evaluateDeBoorT(t_cur);
@@ -203,12 +206,14 @@ void cmdCallback()
     }
     else
     {
-        cout << "[Traj server]: invalid time." << endl;
+        // Do not publish a zero reference before the trajectory begins.
+        time_last = time_now;
+        return;
     }
     time_last = time_now;
 
     cmd.header.stamp = time_now;
-    cmd.header.frame_id = "world";
+    cmd.header.frame_id = planning_frame_;
     cmd.trajectory_flag = quadrotor_msgs::msg::PositionCommand::TRAJECTORY_STATUS_READY;
     cmd.trajectory_id = traj_id_;
 
@@ -236,6 +241,8 @@ int main(int argc, char** argv)
 {
     rclcpp::init(argc, argv);
     auto node = rclcpp::Node::make_shared("traj_server");
+    trajectory_clock_ = node->get_clock();
+    planning_frame_ = node->declare_parameter<std::string>("planning_frame", "world");
 
     auto bspline_sub = node->create_subscription<traj_utils::msg::Bspline>(
         "planning/bspline",

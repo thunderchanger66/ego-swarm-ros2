@@ -192,7 +192,7 @@ void GridMap::initMap(rclcpp::Node::SharedPtr node)
     md_.has_odom_ = false;
     md_.has_cloud_ = false;
     md_.image_cnt_ = 0;
-    md_.last_occ_update_time_ = rclcpp::Time(0, 0, RCL_SYSTEM_TIME);
+    md_.last_occ_update_time_ = rclcpp::Time(0, 0, node_->get_clock()->get_clock_type());
 
     md_.fuse_time_ = 0.0;
     md_.update_num_ = 0;
@@ -787,6 +787,13 @@ void GridMap::depthPoseCallback(const sensor_msgs::msg::Image::ConstPtr& img,
 
 void GridMap::odomCallback(const nav_msgs::msg::Odometry::SharedPtr odom)
 {
+    if (odom->header.frame_id != mp_.frame_id_)
+    {
+        RCLCPP_ERROR_THROTTLE(node_->get_logger(), *node_->get_clock(), 2000,
+                             "Odometry frame %s differs from grid map frame %s",
+                             odom->header.frame_id.c_str(), mp_.frame_id_.c_str());
+        return;
+    }
     if (md_.has_first_depth_)
         return;
     md_.camera_pos_(0) = odom->pose.pose.position.x;
@@ -798,6 +805,13 @@ void GridMap::odomCallback(const nav_msgs::msg::Odometry::SharedPtr odom)
 
 void GridMap::cloudCallback(const sensor_msgs::msg::PointCloud2::ConstPtr& img)
 {
+    if (img->header.frame_id != mp_.frame_id_)
+    {
+        RCLCPP_ERROR_THROTTLE(node_->get_logger(), *node_->get_clock(), 2000,
+                             "Point cloud frame %s differs from grid map frame %s",
+                             img->header.frame_id.c_str(), mp_.frame_id_.c_str());
+        return;
+    }
     pcl::PointCloud<pcl::PointXYZ> latest_cloud;
     pcl::fromROSMsg(*img, latest_cloud);
 
@@ -949,6 +963,7 @@ void GridMap::publishMap()
     sensor_msgs::msg::PointCloud2 cloud_msg;
 
     pcl::toROSMsg(cloud, cloud_msg);
+    cloud_msg.header.stamp = node_->now();
     map_pub_->publish(cloud_msg);
 }
 
@@ -998,6 +1013,7 @@ void GridMap::publishMapInflate(bool all_info)
     sensor_msgs::msg::PointCloud2 cloud_msg;
 
     pcl::toROSMsg(cloud, cloud_msg);
+    cloud_msg.header.stamp = node_->now();
     map_inf_pub_->publish(cloud_msg);
 
     // RCLCPP_INFO(rclcpp::get_logger("publishMapInflate"), "pub map");

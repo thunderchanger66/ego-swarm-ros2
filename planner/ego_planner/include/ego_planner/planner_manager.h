@@ -60,6 +60,7 @@ namespace ego_planner
 
     private:
         /* main planning algorithms & modules */
+        rclcpp::Clock::SharedPtr clock_;
         PlanningVisualization::Ptr visualization_;
 
         // ros::Publisher obj_pub_; //zx-todo

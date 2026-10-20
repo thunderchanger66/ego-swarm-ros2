@@ -5,6 +5,8 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 def generate_launch_description():
+    use_sim_time = LaunchConfiguration("use_sim_time", default="false")
+    planning_frame = LaunchConfiguration("planning_frame", default="world")
     # LaunchConfigurations
     map_size_x = LaunchConfiguration('map_size_x_', default=42.0)
     map_size_y = LaunchConfiguration('map_size_y_', default=30.0)
@@ -117,6 +119,8 @@ def generate_launch_description():
             # ('/move_base_simple/goal', ['/goal_pose'])
         ],
         parameters=[
+            {"use_sim_time": use_sim_time},
+            {"planning_frame": planning_frame},
             {'fsm/flight_type': flight_type},
             {'fsm/thresh_replan_time': 1.0},
             {'fsm/thresh_no_replan_meter': 1.0},
@@ -179,7 +183,7 @@ def generate_launch_description():
             {'grid_map/visualization_truncate_height': 1.8},
             {'grid_map/show_occ_time': False},
             {'grid_map/pose_type': 2},
-            {'grid_map/frame_id': "world"},
+            {'grid_map/frame_id': planning_frame},
             # planner manager
             {'manager/max_vel': max_vel},
             {'manager/max_acc': max_acc},
@@ -254,6 +258,8 @@ def generate_launch_description():
 
 
     # Add Node
+    ld.add_action(DeclareLaunchArgument("use_sim_time", default_value="false"))
+    ld.add_action(DeclareLaunchArgument("planning_frame", default_value="world"))
     ld.add_action(ego_planner_node)
 
     return ld
