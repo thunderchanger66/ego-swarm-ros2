@@ -69,6 +69,8 @@ def generate_launch_description():
                 ('planning/bspline', ['drone_', cfg['drone_id'], '_planning/bspline']),
             ],
             parameters=[{'traj_server/time_forward': 1.0,
+                         # The MID-360/IMU axes are pi radians from base_link.
+                         'traj_server/initial_yaw': 3.141592653589793,
                          'use_sim_time': cfg['use_sim_time'],
                          'planning_frame': cfg['planning_frame']}],
         ),

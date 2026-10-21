@@ -81,7 +81,7 @@ std::pair<double, double> calculate_yaw(double t_cur, Eigen::Vector3d& pos, rclc
     Eigen::Vector3d dir = t_cur + time_forward_ <= traj_duration_
                               ? traj_[0].evaluateDeBoorT(t_cur + time_forward_) - pos
                               : traj_[0].evaluateDeBoorT(traj_duration_) - pos;
-    double yaw_temp = dir.norm() > 0.1 ? atan2(dir(1), dir(0)) : last_yaw_;
+    double yaw_temp = std::hypot(dir(0), dir(1)) > 0.1 ? atan2(dir(1), dir(0)) : last_yaw_;
     double max_yaw_change = YAW_DOT_MAX_PER_SEC * (time_now - time_last).seconds();
     if (yaw_temp - last_yaw_ > PI)
     {
@@ -269,7 +269,8 @@ int main(int argc, char** argv)
     node->declare_parameter("traj_server/time_forward", -1.0);
     node->get_parameter("traj_server/time_forward", time_forward_);
 
-    last_yaw_ = 0.0;
+    node->declare_parameter("traj_server/initial_yaw", 0.0);
+    node->get_parameter("traj_server/initial_yaw", last_yaw_);
     last_yaw_dot_ = 0.0;
 
     rclcpp::sleep_for(std::chrono::seconds(1));
